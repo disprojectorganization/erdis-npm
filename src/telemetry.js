@@ -18,7 +18,6 @@ function Telemetry(_kafkaHost = process.env.kafkaHost) {
         }
         this.kafka = await new Kafka(_kafkaHost);
         this.connected = await this.kafka.initProduceAsync(topic)
-        console.log(this.connected);
         return this;
     })();
 }
