@@ -16,6 +16,7 @@ class MyKafKa extends EventEmitter {
         this.client.on('connect', function () {
             self.emit('clientReady');
         });
+        this.er
     }
     initConsumer(_topic, _options = { autoCommit: true, fetchMaxWaitMs: 5000, fetchMaxBytes: 1024 * 1024 }) {
         if (!this.client) throw new Error('you need to run initClient() first ! ');
@@ -23,6 +24,9 @@ class MyKafKa extends EventEmitter {
         this.consumer.topic = _topic;
         this.consumer.options = _options;
         this.emit('consumerReady', this);
+        this.consumer.on('error', function (err) {
+            self.emit('error', err);
+        })
     }
     initProducer(_topic, _config = { requireAcks: 0, ackTimeoutMs: 100 }) {
         var self = this;
@@ -34,6 +38,9 @@ class MyKafKa extends EventEmitter {
             if (err) return self.emit('error', err)
             self.emit('producerReady', this);
         });
+        this.producer.on('error', function (err) {
+            self.emit('error', err);
+        })
     }
     consume(cb) {
         var self = this;
@@ -41,35 +48,21 @@ class MyKafKa extends EventEmitter {
         this.consumer.on('message', function (message) {
             cb(message.value);
         });
-        // this.client.refreshMetadata([this.consumer.topic], err => { //function (err) {
-        //     if (err) {
-        //         return self.emit('error', err)
-        //     }
-        //     self.consumer.on('message', function (message) {
-        //         // var messageObject = JSON.parse(message.value);
-        //         // cb(messageObject);
-        //         cb(message.value);
-        //     });
-        // })
     }
-    produce(_message) {
+    produce(_message, cb) {
         var self = this;
         let confiq = { topic: this.producer.topic, messages: [_message] }
         Array.isArray(_message) ? confiq = { topic: this.producer.topic, messages: _message } : confiq
-        this.client.refreshMetadata([this.producer.topic], err => {
+        this.producer.send([confiq], function (err, data) {
             if (err) {
-                return self.emit('error', err)
+                self.emit('error', err);
+                cb(false);
             }
-            this.producer.send([confiq], function (err, data) {
-                //console.log(data || err);
-                if (err) {
-                    return self.emit('error', err)
-                }
-                return data;
-            });
-        }//.bind(this)
-        );
+            cb(true);
+        });
+
     }
+
 }
 
 module.exports = MyKafKa;

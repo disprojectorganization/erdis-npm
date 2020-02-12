@@ -6,26 +6,26 @@ const topic = "ERRORLOG";
 class ErrorLog extends EventEmitter {
     constructor(_kafkaHost = process.env.kafkaHost) {
         super();
-        this.kafka = new Kafka(_kafkaHost);
         this.initial();
     }
     initial() {
         var self = this;
-        this.kafka
-            .on('clientReady', function () {
-                self.kafka.initProducer(topic);
-            })
-            .on('producerReady', function () {
-                self.on('ErrorLogData', function (_ErrorLog) {
-                    _ErrorLog.kafka.produce(_ErrorLog.msg, result => {
-                        return result ? true : false;
+        this.on('ErrorLogData', function (msg) {
+            self.kafka = new Kafka(_kafkaHost);
+            self.kafka
+                .on('error', function (err) {
+                    console.log('KAFKA ERROR    '+  err)
+                })
+                .on('producerReady', function () {
+                    self.kafka.produce(msg, result => {
+                        self.kafka.producer.close(function () {});
                     });
                 })
-            })
-            .on('error', function (err) {
-                console.log(err)
-            })
-            ;
+                .on('clientReady', function () {
+                    self.kafka.initProducer(topic);
+                });
+        })
+
     }
     addDataLog(_error, _keyValue, _className) {
         try {
@@ -43,7 +43,7 @@ class ErrorLog extends EventEmitter {
                 createdAt: Date.now()
             };
             this.msg = JSON.stringify(messageToQueue);
-            this.emit('ErrorLogData', this);
+            this.emit('ErrorLogData', this.msg);
         }
         catch (error) {
             this.emit('error', error)
