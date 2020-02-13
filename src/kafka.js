@@ -1,7 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 const kafka = require('kafka-node');
 class MyKafKa extends EventEmitter {
-    constructor(_kafkaHost = process.env.kafkaHost, ) {
+    constructor(_kafkaHost = process.env.kafkaHost ) {
         super();
         this.kafkaHost = _kafkaHost;
         this.client = null;
@@ -16,15 +16,16 @@ class MyKafKa extends EventEmitter {
         this.client.on('connect', function () {
             self.emit('clientReady');
         });
-        this.er
     }
     initConsumer(_topic, _options = { autoCommit: true, fetchMaxWaitMs: 5000, fetchMaxBytes: 1024 * 1024 }) {
+        var self = this;
         if (!this.client) throw new Error('you need to run initClient() first ! ');
         this.consumer = new kafka.Consumer(this.client, [{ topic: _topic, partition: 0 }], _options);
         this.consumer.topic = _topic;
         this.consumer.options = _options;
         this.emit('consumerReady', this);
         this.consumer.on('error', function (err) {
+            console.log(err);
             self.emit('error', err);
         })
     }

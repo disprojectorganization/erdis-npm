@@ -2,32 +2,34 @@ const EventEmitter = require('events').EventEmitter;
 const Kafka = require('./kafka');
 const _ = require("lodash");
 const topic = "ERRORLOG";
+let instance;
+
 
 class ErrorLog extends EventEmitter {
     constructor(_kafkaHost = process.env.kafkaHost) {
         super();
-        this.initial();
+        this.kafkaHost = _kafkaHost;
     }
-    initial() {
-        var self = this;
+    init() {
         this.on('ErrorLogData', function (msg) {
-            self.kafka = new Kafka(_kafkaHost);
-            self.kafka
+            let kafka = new Kafka(this.kafkaHost);
+            kafka
                 .on('error', function (err) {
-                    console.log('KAFKA ERROR    '+  err)
+                    console.log('KAFKA ERROR    ' + err)
+                    this.emit('error', err)
                 })
                 .on('producerReady', function () {
-                    self.kafka.produce(msg, result => {
-                        self.kafka.producer.close(function () {});
+                    kafka.produce(msg, result => {
+                        kafka.producer.close(function () { });
                     });
                 })
                 .on('clientReady', function () {
-                    self.kafka.initProducer(topic);
+                    kafka.initProducer(topic);
                 });
         })
-
+        return this
     }
-    addDataLog(_error, _keyValue, _className) {
+    add(_error, _keyValue, _className) {
         try {
             let data = _.pick(_error, ["code", "name", "message", "stack"]);
             let messageToQueue = {
@@ -42,15 +44,26 @@ class ErrorLog extends EventEmitter {
                 serviceName: process.env.APP_ID,
                 createdAt: Date.now()
             };
-            this.msg = JSON.stringify(messageToQueue);
-            this.emit('ErrorLogData', this.msg);
+            let msg = JSON.stringify(messageToQueue);
+            this.emit('ErrorLogData',msg);
+            return true;
         }
         catch (error) {
             this.emit('error', error)
         }
     }
+
 }
 
+ErrorLog.getInstance =  function (_kafkaHost) {
+    if (!instance) {
+        const errorlog = new ErrorLog(_kafkaHost);
+        instance = errorlog.init()
+    }
+    return instance;
+};
+
+module.exports = ErrorLog;
 
 function findMethodName(_error) {
     try {
@@ -74,4 +87,3 @@ function findLineOfError(_error) {
     }
 }
 
-module.exports = ErrorLog;
