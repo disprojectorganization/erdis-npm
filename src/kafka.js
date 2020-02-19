@@ -25,7 +25,6 @@ class MyKafKa extends EventEmitter {
         this.consumer.options = _options;
         this.emit('consumerReady', this);
         this.consumer.on('error', function (err) {
-            console.log(err);
             self.emit('error', err);
         })
     }
