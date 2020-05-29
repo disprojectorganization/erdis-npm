@@ -49,17 +49,23 @@ class MyKafKa extends EventEmitter {
             cb(message.value);
         });
     }
-    produce(_message, cb) {
+    produce(_message) {
         var self = this;
         let confiq = { topic: this.producer.topic, messages: [_message] }
         Array.isArray(_message) ? confiq = { topic: this.producer.topic, messages: _message } : confiq
-        this.producer.send([confiq], function (err, data) {
+        this.client.refreshMetadata([this.producer.topic], err => {
             if (err) {
-                self.emit('error', err);
-                cb(false);
+                return self.emit('error', err)
             }
-            cb(true);
-        });
+            this.producer.send([confiq], function (err, data) {
+                //console.log(data || err);
+                if (err) {
+                    return self.emit('error', err)
+                }
+                return data;
+            });
+        }//.bind(this)
+        );
 
     }
 
