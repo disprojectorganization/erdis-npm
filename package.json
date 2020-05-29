@@ -1,6 +1,6 @@
 {
-  "name": "erdis",
-  "version": "1.0.27",
+  "name": "dis-util",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
