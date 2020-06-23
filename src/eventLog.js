@@ -5,7 +5,7 @@ const topic = "EVENTLOG";
 let instance;
 
 
-class    extends EventEmitter {
+class EventLog extends EventEmitter {
     constructor(_kafkaHost = process.env.kafkaHost) {
         super();
         this.kafkaHost = _kafkaHost;
