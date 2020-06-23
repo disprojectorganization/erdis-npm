@@ -57,8 +57,8 @@ class    extends EventEmitter {
 
 TraceLog.getInstance =  function (_kafkaHost) {
     if (!instance) {
-        const errorlog = new TraceLog(_kafkaHost);
-        instance = errorlog.init()
+        const tracelog = new TraceLog(_kafkaHost);
+        instance = tracelog.init()
     }
     return instance;
 };
