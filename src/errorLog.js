@@ -55,13 +55,13 @@ class ErrorLog extends EventEmitter {
 
     send(_error, _keyValue, _className) {
         try {
-            let data = _.pick(_error, ["errorCode", "errorName", "errorMessage", "errorStack", "methodName", "lineOfError"]);
+            let data = _.pick(_error, ["errorCode", "errorName", "errorMessage", "errorStack", "errorMessage", "methodName", "lineOfError"]);
             let messageToQueue = {
-                errorName: data.name,
-                errorCode: data.code,
-                errorMessage: data.message,
+                errorName: data.errorName,
+                errorCode: data.errorCode,
+                errorMessage: data.errorMessage,
                 keyValue: _keyValue,
-                errorStack: data.stack.toString().substring(0, 300),
+                errorStack: data.errorStack.toString().substring(0, 300),
                 className: _className,
                 methodName: data.methodName,
                 lineOfError: data.lineOfError,
