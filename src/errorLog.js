@@ -55,7 +55,7 @@ class ErrorLog extends EventEmitter {
 
     send(_error, _keyValue, _className) {
         try {
-            let data = _.pick(_error, ["errorCode", "errorName", "errorMessage", "errorStack", "errorMessage", "methodName", "lineOfError"]);
+            let data = _.pick(_error, ["errorCode", "errorName", "errorMessage", "errorStack", "methodName", "lineOfError", "serviceName"]);
             let messageToQueue = {
                 errorName: data.errorName,
                 errorCode: data.errorCode,
@@ -65,7 +65,7 @@ class ErrorLog extends EventEmitter {
                 className: _className,
                 methodName: data.methodName,
                 lineOfError: data.lineOfError,
-                serviceName: process.env.APP_ID,
+                serviceName: data.serviceName,
                 createdAt: Date.now()
             };
             let msg = JSON.stringify(messageToQueue);
