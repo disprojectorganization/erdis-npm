@@ -53,6 +53,30 @@ class ErrorLog extends EventEmitter {
         }
     }
 
+    send(_error, _keyValue, _className) {
+        try {
+            let data = _.pick(_error, ["errorCode", "errorName", "errorMessage", "errorStack", "methodName", "lineOfError"]);
+            let messageToQueue = {
+                errorName: data.name,
+                errorCode: data.code,
+                errorMessage: data.message,
+                keyValue: _keyValue,
+                errorStack: data.stack.toString().substring(0, 300),
+                className: _className,
+                methodName: data.methodName,
+                lineOfError: data.lineOfError,
+                serviceName: process.env.APP_ID,
+                createdAt: Date.now()
+            };
+            let msg = JSON.stringify(messageToQueue);
+            this.emit('ErrorLogData',msg);
+            return true;
+        }
+        catch (error) {
+            this.emit('error', error)
+        }
+    }
+
 }
 
 ErrorLog.getInstance =  function (_kafkaHost) {
